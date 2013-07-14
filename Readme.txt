@@ -1,0 +1,1 @@
+Нужно обновить рабочий путь: AMorph->Properties->Debug->Working Directory так, чтобы он указывал на папку solution /Build/
