@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AMorph", "AMorph\AMorph.csproj", "{38CFA4B8-71A1-4D17-B3CA-BD264DCECAC8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{AC276023-12C9-49F3-BEAB-12390078891F} = {AC276023-12C9-49F3-BEAB-12390078891F}
@@ -28,11 +28,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAmorph", "TestAmorph\Te
 		{AC276023-12C9-49F3-BEAB-12390078891F} = {AC276023-12C9-49F3-BEAB-12390078891F}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MpiAMorph", "MpiAMorph\MpiAMorph.vcxproj", "{445DE5CF-7600-442F-AE31-586E66F59267}"
+EndProject
 Global
-	GlobalSection(SubversionScc) = preSolution
-		Svn-Managed = True
-		Manager = AnkhSVN - Subversion Support for Visual Studio
-	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = AMorph.vsmdi
 	EndGlobalSection
@@ -122,8 +120,28 @@ Global
 		{06A4B5F1-0A74-4A5F-9544-D3CCF0A7C56C}.Release|Win32.ActiveCfg = Release|Any CPU
 		{06A4B5F1-0A74-4A5F-9544-D3CCF0A7C56C}.Release|x64.ActiveCfg = Release|Any CPU
 		{06A4B5F1-0A74-4A5F-9544-D3CCF0A7C56C}.Release|x86.ActiveCfg = Release|Any CPU
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Debug|Win32.ActiveCfg = Debug|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Debug|Win32.Build.0 = Debug|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Debug|x64.ActiveCfg = Debug|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Debug|x86.ActiveCfg = Debug|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Debug|x86.Build.0 = Debug|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Release|Any CPU.ActiveCfg = Release|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Release|Win32.ActiveCfg = Release|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Release|Win32.Build.0 = Release|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Release|x64.ActiveCfg = Release|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Release|x86.ActiveCfg = Release|Win32
+		{445DE5CF-7600-442F-AE31-586E66F59267}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
 	EndGlobalSection
 EndGlobal
