@@ -85,7 +85,11 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bitmap_test.cpp" />
     <ClCompile Include="MpiAMorph.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="bitmap_image.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
