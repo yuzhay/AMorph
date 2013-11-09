@@ -1,15 +1,15 @@
 // MpiAMorph.cpp : Defines the entry point for the console application.
 //
 
-#include <iostream>
 #include <mpi.h>
+#include <iostream>
 #include "bitmap_image.hpp"
 
 
 using namespace std;
 
 
-int load(unsigned char **vector, unsigned long *sizeMtx, unsigned long *sizeCell);
+int load(char *fielname, unsigned char **vector, unsigned long *sizeMtx, unsigned long *sizeCell);
 
 int main(int argc, char* argv[])
 {
@@ -17,7 +17,16 @@ int main(int argc, char* argv[])
 
 	int myNode, totalNodes;
 
+	if(argc != 2)
+	{
+		cout << "Параметры введены неправильно." << endl;
+		cout << "Пример: amorph src_bmp dst_bmp" << endl;
+		return;
+	}
+
+
 	int rc;
+	MPI::Init();
 	if(rc = MPI_Init(&argc,&argv))
 	{
 		cout << "MPI_Init ошибка " << endl;
@@ -36,17 +45,20 @@ int main(int argc, char* argv[])
 
 	unsigned long sizeMtx;
 	unsigned long sizeCell;
-	unsigned char * vector;
-	load(&vector, &sizeMtx, &sizeCell);
+	unsigned char * src_vector;
+	unsigned char * dst_vector;
 
-	free(vector);
+	load(argv[1], &src_vector, &sizeMtx, &sizeCell);
+	load(argv[2], &dst_vector, &sizeMtx, &sizeCell);
+
+	free(src_vector);
+	free(dst_vector);
 	MPI_Finalize();
 	return 0;
 }
 
-int load(unsigned char **vector, unsigned long *sizeMtx, unsigned long *sizeCell)
+int load(char *filename, unsigned char **vector, unsigned long *sizeMtx, unsigned long *sizeCell)
 {
-	string filename = "F:\\Projects\\AMorph\\MpiAMorph\\image.bmp";
 	string file_name(filename);
 	bitmap_image image(file_name);
 
