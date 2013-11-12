@@ -32,5 +32,8 @@
     <ClInclude Include="bitmap_image.hpp">
       <Filter>Source Files\Bitmap</Filter>
     </ClInclude>
+    <ClInclude Include="msgtags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
