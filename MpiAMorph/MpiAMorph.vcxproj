@@ -91,6 +91,7 @@
     <ClCompile Include="MasterProcess.cpp" />
     <ClCompile Include="MpiAMorph.cpp" />
     <ClCompile Include="SlaveProcess.cpp" />
+    <ClCompile Include="VertexContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmap_image.hpp" />
@@ -98,6 +99,7 @@
     <ClInclude Include="Library.h" />
     <ClInclude Include="msp.h" />
     <ClInclude Include="msgtags.h" />
+    <ClInclude Include="VertexContainer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -9,6 +9,8 @@
 #include "Files.h"
 #include "Library.h"
 
+#include "VertexContainer.h"
+
 using namespace std;
 
 //”казатели на файлы
@@ -95,14 +97,26 @@ void Start()
 
 	//v[0] = 3;
 	//v[1] = 1;
-	//v[2] = 5;
+	//v[2] = 6;
 
-	//unsigned long *v2 = BuildVector(v,3,10);
+	//unsigned long *v2 = (unsigned long *)malloc(sizeof(long)*4);
 
-	//for (int i = 0; i < 10; i++)
-	//{
-	//	cout << v2[i] << " ";
-	//}
+	//v2[0] = 3;
+	//v2[1] = 1;
+	//v2[2] = 5;
+	//v2[3] = 9;
+
+	//VertexContainer vc;
+	////vc.Add(v,3);
+	//vc.Add(v2,4);
+
+
+	//cout << vc.Find(v,3,2) <<endl;
 
 	//free(v);
+	//free(v2);
+
+	//vc.Print();
+
+	
 }

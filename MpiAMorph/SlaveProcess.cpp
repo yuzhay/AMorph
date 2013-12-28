@@ -9,6 +9,7 @@
 using namespace std;
 
 
+
 //»сполн€ющий процесс
 void SlaveProcess(char *srcFile,char *dstFile, int myNode)
 {
