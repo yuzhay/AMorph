@@ -86,10 +86,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bitmap_test.cpp" />
+    <ClCompile Include="Files.cpp" />
+    <ClCompile Include="Library.cpp" />
+    <ClCompile Include="MasterProcess.cpp" />
     <ClCompile Include="MpiAMorph.cpp" />
+    <ClCompile Include="SlaveProcess.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmap_image.hpp" />
+    <ClInclude Include="files.h" />
+    <ClInclude Include="Library.h" />
+    <ClInclude Include="msp.h" />
     <ClInclude Include="msgtags.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

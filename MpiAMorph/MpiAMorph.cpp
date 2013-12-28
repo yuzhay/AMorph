@@ -3,29 +3,31 @@
 
 #include "mpi.h"
 #include <iostream>
-#include <queue>
 #include <vector>
-#include "bitmap_image.hpp"
 #include "msgtags.h"
+#include "msp.h"
+#include "Files.h"
+#include "Library.h"
 
 using namespace std;
 
-int load(char *fielname, unsigned char **vector, unsigned long *sizeMtx, unsigned long *sizeCell);
-void SlaveProcess();
-void MasterProcess();
-bool FileExists(char *filename);
-
-int myNode, totalNodes;
+//Указатели на файлы
 char *srcFile,*dstFile;
 
+void Start();
 
+//Номер текущего процесса
+int myNode;
+
+//Количество процессов
+int totalNodes; 
 
 int main(int argc, char* argv[])
 {
+
 	setlocale(LC_ALL, "Russian");
 
 	int rc;
-
 
 	if(rc = MPI_Init(&argc,&argv))
 	{
@@ -44,6 +46,8 @@ int main(int argc, char* argv[])
 
 	if(myNode == 0)
 	{
+		Start();
+
 		if(argc != 3)
 		{
 			cout << "Invalida arguments" << endl;
@@ -61,8 +65,7 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 
-
-		MasterProcess();
+		MasterProcess(srcFile,dstFile, totalNodes);
 	}else{
 		if(argc != 3)
 		{
@@ -79,183 +82,27 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 
-		SlaveProcess();
+		SlaveProcess(srcFile,dstFile, myNode);
 	}
-
-
 
 	MPI_Finalize();
 	return 0;
 }
 
-bool FileExists(char *filename)
+void Start()
 {
-	bool exists = false;
-	FILE *f = fopen(filename,"r");
-	if (f!=NULL){
-		exists = true;
-		fclose(f);
-	}
-	return exists;
-}
+	//unsigned long *v = (unsigned long *)malloc(sizeof(long)*3);
 
-//Управляющий процесс
-void MasterProcess()
-{
-	queue<unsigned long *> q;
+	//v[0] = 3;
+	//v[1] = 1;
+	//v[2] = 5;
 
-	unsigned long sizeMtx;
-	unsigned long sizeCell;
-	unsigned char * src_vector;
-	unsigned char * dst_vector;
+	//unsigned long *v2 = BuildVector(v,3,10);
 
-	cout << "Total nodes: " << totalNodes << endl;
+	//for (int i = 0; i < 10; i++)
+	//{
+	//	cout << v2[i] << " ";
+	//}
 
-	//Синхронизация процессов
-	MPI_Barrier(MPI_COMM_WORLD);
-
-	//Загрузка исходного изображения
-	load(srcFile, &src_vector, &sizeMtx, &sizeCell);
-
-	//Загрузка конечного изображения
-	load(dstFile, &dst_vector, &sizeMtx, &sizeCell);
-
-	for (int i = 0; i < sizeMtx; i++)
-	{
-		unsigned long *arr = (unsigned long *)malloc(sizeof(long)* 2);
-		arr[0] = i;
-		arr[1] = i+1;
-		q.push(arr);
-	}
-	
-	//Обход в ширину
-
-
-	//Раздать вершины подграфов по узлам
-	for (int i = 0; i < totalNodes && i < sizeMtx; i++)
-	{
-		//MPI_Send:
-		//buf	 -	 адрес начала расположения пересылаемых данных;
-		//count	 -	 число пересылаемых элементов;
-		//datatype	 -	 тип посылаемых элементов;
-		//dest	 -	 номер процесса-получателя в группе, связанной с коммуникатором comm;
-		//tag	 -	 идентификатор сообщения (аналог типа сообщения функций nread и nwrite PSE nCUBE2);
-		//comm	 -	 коммуникатор области связи.
-
-		MPI_Send((void *)q.front(),2,MPI_LONG,i+1,1,MPI_COMM_WORLD);
-		q.pop();
-	}
-
-	MPI_Status status;
-	while(true)
-	{
-		//MPI_Recv(&i,1, MPI_INT,0,1,MPI_COMM_WORLD,&status);
-	}
-
-
-	//Освобождение памяти
-	free(src_vector);
-	free(dst_vector);
-}
-
-//Исполняющий процесс
-void SlaveProcess()
-{
-	int i = 0;
-	MPI_Status status;
-
-	unsigned long sizeMtx;
-	unsigned long sizeCell;
-	unsigned char * src_vector;
-	unsigned char * dst_vector;
-
-	//Синхронизация процессов
-	MPI_Barrier(MPI_COMM_WORLD);
-
-	cout << "Current node: " << myNode << endl;
-
-	//Загрузка исходного изображения
-	load(srcFile, &src_vector, &sizeMtx, &sizeCell);
-
-	//Загрузка конечного изображения
-	load(dstFile, &dst_vector, &sizeMtx, &sizeCell);
-
-	//for(;;)
-	{
-		int error,count ;
-		unsigned long* buffer;
-		MPI_Status status ;
-
-		//Позволяет проверить входные сообщения без их реального приема
-		error = MPI_Probe(0,1,MPI_COMM_WORLD,&status);
-
-		//Получить длину принимаемого сообщения
-		error = MPI_Get_count(&status,MPI_LONG,&count);
-
-		//Выделить память
-		buffer = (unsigned long*)malloc (sizeof(long)*count) ;
-
-		if ( buffer == NULL ){};
-
-		//MPI_Recv:
-		//OUT	 buf	 -	 адрес начала расположения принимаемого сообщения;
-		//IN	 count	 -	 максимальное число принимаемых элементов;
-		//IN	 datatype	 -	 тип элементов принимаемого сообщения;
-		//IN	 source	 -	 номер процесса-отправителя;
-		//IN	 tag	 -	 идентификатор сообщения;
-		//IN	 comm	 -	 коммуникатор области связи;
-		//OUT	 status	 -	 атрибуты принятого сообщения.
-		error = MPI_Recv (buffer,count,MPI_LONG,0,1,MPI_COMM_WORLD,&status);
-
-		for (int i = 0; i < count; i++)
-		{
-			cout<<buffer[i]<< " ";
-		}
-		cout<< endl;
-
-		//ToDo: Отправка на обход дерева по вектору
-
-		free(buffer);
-	}
-
-	free(src_vector);
-	free(dst_vector);
-}
-
-int load(char *filename, unsigned char **vector, unsigned long *sizeMtx, unsigned long *sizeCell)
-{
-	string file_name(filename);
-	bitmap_image image(file_name);
-
-	//cout << "Изображение загружено успешно:" << filename << endl; 
-	//cout << "Размер " << image.width() << "x" << image.height() << endl;
-	//cout << "Всего пикселей: " << image.pixel_count() << endl;
-	//cout << "Байт на пиксель: " << image.bytes_per_pixel() << endl;
-	//cout << "Размер int: " << sizeof(int) << endl;
-
-	unsigned char red, green, blue;
-
-	*sizeMtx = image.width();
-	*sizeCell = image.bytes_per_pixel();
-
-	unsigned long index = 0;
-	*vector = (unsigned char *)calloc((*sizeMtx)*(*sizeMtx),*sizeCell);
-
-	for(register int y = 0; y < image.height();y++)
-	{
-		for(register int x = 0; x < image.width();x++)
-		{
-			image.get_pixel(x,y,red,green,blue);
-			(*vector)[index++] = red;
-			(*vector)[index++] = green;
-			(*vector)[index++] = blue;
-			//cout << (int)red << "-" << (int)green << "-" << (int)blue << "\t";
-			//(x == image.width() - 1) cout << endl;
-		}
-	}
-
-	//Отладочная печать
-	//for (int i = 0; i < index; i++)
-	//	cout << (int)(*vector)[i] << " ";
-	return 0;
+	//free(v);
 }

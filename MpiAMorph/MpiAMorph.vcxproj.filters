@@ -27,12 +27,33 @@
     <ClCompile Include="bitmap_test.cpp">
       <Filter>Source Files\Bitmap</Filter>
     </ClCompile>
+    <ClCompile Include="MasterProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SlaveProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Files.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Library.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmap_image.hpp">
       <Filter>Source Files\Bitmap</Filter>
     </ClInclude>
     <ClInclude Include="msgtags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="files.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Library.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
