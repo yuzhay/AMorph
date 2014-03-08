@@ -5,10 +5,9 @@
 #include "msgtags.h"
 #include "msp.h"
 #include "Files.h"
+#include "../calc/IsomorphMatrices.h"
 
 using namespace std;
-
-
 
 //»сполн€ющий процесс
 void SlaveProcess(char *srcFile,char *dstFile, int myNode)
@@ -59,11 +58,12 @@ void SlaveProcess(char *srcFile,char *dstFile, int myNode)
 		//OUT	 status	 -	 атрибуты прин€того сообщени€.
 		error = MPI_Recv (buffer,count,MPI_LONG,0,1,MPI_COMM_WORLD,&status);
 
-		for (int i = 0; i < count; i++)
-		{
-			cout<<buffer[i]<< " ";
-		}
-		cout<< endl;
+		//SPState1();
+		//for (int i = 0; i < count; i++)
+		//{
+		//	cout<<buffer[i]<< " ";
+		//}
+		//cout<< endl;
 
 		//ToDo: ќтправка на обход дерева по вектору
 
@@ -72,4 +72,39 @@ void SlaveProcess(char *srcFile,char *dstFile, int myNode)
 
 	free(src_vector);
 	free(dst_vector);
+}
+
+void Callback(IsomorphMatrices *im)
+{
+
+}
+
+void SPState1()
+{	 
+	 
+}	 
+
+void SPState2()
+{
+
+}
+
+void SPState3()
+{
+
+}
+
+void SPState4()
+{
+
+}
+
+void SPState5()
+{
+
+}
+
+void SPState6()
+{
+
 }

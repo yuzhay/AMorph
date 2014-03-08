@@ -97,7 +97,9 @@
   <ItemGroup>
     <ClInclude Include="AutomorphMatrix.h" />
     <ClInclude Include="BasicMatrix.h" />
+    <ClInclude Include="bitmap_image.hpp" />
     <ClInclude Include="DecryptMatrix.h" />
+    <ClInclude Include="Files.h" />
     <ClInclude Include="HadamardMatrix.h" />
     <ClInclude Include="IncidenceMatrix.h" />
     <ClInclude Include="IsomorphMatrices.h" />
@@ -110,7 +112,9 @@
   <ItemGroup>
     <ClCompile Include="AutomorphMatrix.cpp" />
     <ClCompile Include="BasicMatrix.cpp" />
+    <ClCompile Include="bitmap_test.cpp" />
     <ClCompile Include="DecryptMatrix.cpp" />
+    <ClCompile Include="Files.cpp" />
     <ClCompile Include="HadamardMatrix.cpp" />
     <ClCompile Include="IncidenceMatrix.cpp" />
     <ClCompile Include="IsomorphMatrices.cpp" />

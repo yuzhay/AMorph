@@ -2,8 +2,8 @@
 #include <iostream>
 #include <ostream>
 #include <fstream>
-#include "PermVectorTrunk.h"
-#include "Stats.h"
+#include "../calc/PermVectorTrunk.h"
+#include "../calc/Stats.h"
 #include <string>
 
 

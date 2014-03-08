@@ -7,6 +7,7 @@
 #include "StatisticsMatrix.h"
 #include "HadamardMatrix.h"
 #include "IncidenceMatrix.h"
+#include "Files.h"
 
 //#define DEBUG_MODE 0
 

@@ -26,12 +26,6 @@
     <ClInclude Include="AMorphC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Stats.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PermVectorTrunk.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MatrixFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>

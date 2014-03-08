@@ -71,6 +71,7 @@ IsomorphMatrices::IsomorphMatrices(unsigned long sizeMtx, unsigned long sizeCell
 
 	this->counter = 0;
 
+	this->ignors = new MaskVectorTrunk(this->sizeMtx);
 }
 
 IsomorphMatrices::~IsomorphMatrices(void)
@@ -85,7 +86,7 @@ IsomorphMatrices::~IsomorphMatrices(void)
 		}
 		free(this->mtxOriginal);
 	}
-	
+
 	if(this->mtxModified != NULL)
 	{
 		for(register unsigned long i=0;i<this->sizeMtx;i++){
@@ -110,6 +111,8 @@ IsomorphMatrices::~IsomorphMatrices(void)
 	if(this->passed)
 		delete this->passed;
 
+	delete this->ignors;
+
 }
 
 bool IsomorphMatrices::CompareIsomorph(unsigned long depth, unsigned long vector[])
@@ -124,7 +127,7 @@ bool IsomorphMatrices::CompareIsomorph(unsigned long depth, unsigned long vector
 		}
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -135,16 +138,29 @@ void IsomorphMatrices:: SearchIsomorph(unsigned long depth, unsigned long vector
 	unsigned long tmp = 0;
 	static int counter = 0;
 	//length 1,2,3,..,size
+
+
+
 	if(depth <= this->sizeMtx) 
 	{
 		this->progress = ((double)100/this->sizeMtx)*depth;
 		for(register unsigned long i = depth - 1; i < this->sizeMtx; ++i)
 		{
+
+
 			//есть тривиальный случай при (i) равном (length - 1)
 			tmp = vector[depth-1]; 
 			vector[depth-1] = vector[i];
 			vector[i] = tmp;
-		
+
+			if(this->ignors->FindMask(vector) == depth)
+			{
+				tmp = vector[depth-1]; 
+				vector[depth-1] = vector[i];
+				vector[i] = tmp;
+				continue;
+			}
+
 			//сравнение матриц
 			if(CompareIsomorph(depth, vector))
 			{
@@ -171,7 +187,60 @@ void IsomorphMatrices:: SearchIsomorph(unsigned long depth, unsigned long vector
 			tmp = vector[depth-1]; 
 			vector[depth-1] = vector[i];
 			vector[i] = tmp;
-			
+
+		}
+	}
+	else//(если length > size)
+	{
+		return;
+	}
+	return;
+}
+
+void IsomorphMatrices:: SearchIsomorphCallback(unsigned long depth, unsigned long vector[], void (*callback)(IsomorphMatrices *im))
+{
+	if(depth == 0) throw "SearchIsomorph: WrongArgumentException: Depth <= 0";
+
+	//bool status;
+	unsigned long tmp = 0;
+	static int counter = 0;
+	//length 1,2,3,..,size
+	if(depth <= this->sizeMtx) 
+	{
+		this->progress = ((double)100/this->sizeMtx)*depth;
+		for(register unsigned long i = depth - 1; i < this->sizeMtx; ++i)
+		{
+			//есть тривиальный случай при (i) равном (length - 1)
+			tmp = vector[depth-1]; 
+			vector[depth-1] = vector[i];
+			vector[i] = tmp;
+
+			//сравнение матриц
+			if(CompareIsomorph(depth, vector))
+			{
+				if(depth != this->sizeMtx)
+				{
+					this->SearchIsomorph(depth+1,vector);
+				}			
+				else	//если текущий эл-т последний и матрицы равны, то найден новый автоморфизм и надо его добавить
+				{
+					//std:: cout<<"\nCheck Point Add(vector) Start\n";
+					//std:: cout<<"\nNew vector found\n";
+					for(unsigned long k = 0; k < this->sizeMtx; ++k)
+						std:: cout<<vector[k]<<" | ";
+					this->substitutions->Add(vector, this->counter);
+					tmp = vector[depth-1]; 
+					vector[depth-1] = vector[i];
+					vector[i] = tmp;
+					this->counter = 0;
+					return;
+				}
+			}
+			//не зависимо от того успешно или нет отработал алгоритм поиска, следует вернуть эл-ты на свои места
+			tmp = vector[depth-1]; 
+			vector[depth-1] = vector[i];
+			vector[i] = tmp;
+
 		}
 	}
 	else//(если length > size)
@@ -205,7 +274,7 @@ void IsomorphMatrices:: SearchStatisticsIsomorphRecursive(unsigned int depth, un
 		}
 		tmp = vector[depth];
 		vector[depth] = i;
-		
+
 	}
 }
 
@@ -233,7 +302,7 @@ void IsomorphMatrices:: SearchStatisticsIsomorphRecursiveFull(unsigned int depth
 		}
 		tmp = vector[depth];
 		vector[depth] = i;
-		
+
 	}
 }
 
@@ -241,8 +310,8 @@ void IsomorphMatrices:: SearchStatisticsIsomorph(char options = 3)
 {
 	/*
 	options - Битовая маска: 
-		0000 0001 - сбор статистики по колонкам, 
-		0000 0010 - сбор статистики по строкам
+	0000 0001 - сбор статистики по колонкам, 
+	0000 0010 - сбор статистики по строкам
 	*/
 
 	this->mtxStatOriginal->Run(options);	
@@ -255,7 +324,7 @@ void IsomorphMatrices:: SearchStatisticsIsomorph(char options = 3)
 	//statmap *mtxModifiedRows;
 
 	unsigned long *vector = new unsigned long [this->sizeMtx];
-	
+
 	for(register unsigned long i =0; i<this->sizeMtx;++i)
 		vector[i] = i;
 
@@ -332,4 +401,9 @@ double  IsomorphMatrices::GetProgress()
 unsigned long IsomorphMatrices::GetParts(unsigned long index)
 {
 	return this->substitutions->GetParts(index);
+}
+
+void IsomorphMatrices::AddToIgnore(unsigned long *vector)
+{
+	this->ignors->Add(vector,0);
 }

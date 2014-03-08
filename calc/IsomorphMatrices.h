@@ -88,6 +88,11 @@ private:
 	PermVectorTrunk *substitutions;
 
 	/**
+	* Массив игнорируемых перестановок
+	*/
+	MaskVectorTrunk *ignors;
+
+	/**
 	* Массив информации для построения графика
 	*/
 	vector<unsigned long> parts;
@@ -151,7 +156,8 @@ public:
 	* @param mtxVectorOrig  Вектор оригинальной матрицы
 	* @param mtxVectorModif Вектор модифицированной матрицы
 	*/
-	IsomorphMatrices(unsigned long sizeMtx, unsigned long sizeCell, unsigned char *mtxVectorOrig, unsigned char *mtxVectorModif);
+	IsomorphMatrices(unsigned long sizeMtx, unsigned long sizeCell, 
+		unsigned char *mtxVectorOrig, unsigned char *mtxVectorModif);
 
 	/**
 	* @brief Деструктор
@@ -183,6 +189,15 @@ public:
 	* @param vector Вектор перестановок
 	*/
 	void SearchIsomorph(unsigned long depth, unsigned long vector[]);
+
+		/**
+	* @brief Поиск изоморфизмов
+	* @param depth Глубина поиска изоморфизмов
+	* @param vector Вектор перестановок
+	* @param curVector Текущий вектор
+	*/
+	void SearchIsomorphCallback(unsigned long depth, unsigned long vector[], void (*callback)(IsomorphMatrices *im));
+	
 
 	/**
 	* @brief Поиск изоморфизмов используя собранную статистику
@@ -221,4 +236,10 @@ public:
 	* @return Возвращает индекатор прогресса
 	*/
 	unsigned long IsomorphMatrices::GetParts(unsigned long index);
+
+	/**
+	* @brief Добавить вектор в список игнора
+	*/
+	void IsomorphMatrices::AddToIgnore(unsigned long *vector);
+
 };

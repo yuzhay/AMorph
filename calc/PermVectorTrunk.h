@@ -22,7 +22,7 @@ using namespace std;
 */
 class CLASS_DECLSPEC PermVectorTrunk
 {
-private:
+protected:
 	unsigned long size;
 	vector<unsigned long*> trunk;
 
@@ -36,7 +36,7 @@ private:
 	* @param v2 Второй вектор для сравнения
 	* @return Возвращает 0 если вектора идентичны.
 	*/
-	int VectorCmp(const unsigned long *v1, const unsigned long* v2);
+	virtual long VectorCmp(const unsigned long *v1, const unsigned long* v2);
 public:
 	/**
 	* @brief Конструктор
@@ -47,7 +47,7 @@ public:
 	/**
 	* @brief Деструктор
 	*/
-	~PermVectorTrunk(void);
+	virtual ~PermVectorTrunk(void);
 
 	/**
 	* @brief Оператор доступа к сохраненным векторам перестановки
@@ -67,7 +67,7 @@ public:
 	* @param vector Вектор перестановки
 	* @return Возвращает TRUE, если такой вектор найден. Иначе FALSE.
 	*/
-	bool Find(unsigned long *vector);
+	virtual bool Find(unsigned long *vector);
 
 	/**
 	* @brief Получить количество имеющихся векторов.
@@ -80,5 +80,31 @@ public:
 	* @return Возвращает статистику для вектора.
 	*/
 	unsigned long GetParts(unsigned long index);
+
+	//virtual long FindMask(unsigned long *vector);
+
+	//long PermVectorTrunk::MaskCmp(const unsigned long *v1, const unsigned long* v2);
+};
+
+/**
+* @brief Класс для хранения маски векторов
+*/
+class CLASS_DECLSPEC MaskVectorTrunk: public PermVectorTrunk
+{
+public:
+	/**
+	* @brief Конструктор
+	* @param Size длина вектора для хранения
+	*/
+	MaskVectorTrunk(unsigned long Size);
+
+	/**
+	* @brief Деструктор
+	*/
+	virtual ~MaskVectorTrunk(void);
+
+	long FindMask(unsigned long *vector);
+
+	long MaskCmp(const unsigned long *v1, const unsigned long* v2);
 };
 

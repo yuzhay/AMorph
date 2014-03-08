@@ -5,7 +5,7 @@
 
 #include "PermMatrix.h"
 #include "PermMatrixNew.h"
-#include "Stats.h"
-#include "PermVectorTrunk.h"
+#include "../calc/Stats.h"
+#include "../calc/PermVectorTrunk.h"
 
 using namespace std;

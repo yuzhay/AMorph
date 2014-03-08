@@ -1,19 +1,21 @@
 #include "AMorphC.h"
 #include "MatrixFile.h"
 #include <direct.h>
+#include "../calc/IsomorphMatrices.h"
+#include "../calc/Files.h"
 
 unsigned char dataTestFiveDim[5][5] = {
-					/*{0,1,1,1,1},
-					{1,0,1,1,1},
-					{1,1,0,1,1},
-					{1,1,1,0,1},
-					{1,1,1,1,0},*/
-					{0,1,0,0,1},
-					{1,0,1,0,0},
-					{0,1,0,1,0},
-					{0,0,1,0,1},
-					{1,0,0,1,0},
-					};
+	/*{0,1,1,1,1},
+	{1,0,1,1,1},
+	{1,1,0,1,1},
+	{1,1,1,0,1},
+	{1,1,1,1,0},*/
+	{0,1,0,0,1},
+	{1,0,1,0,0},
+	{0,1,0,1,0},
+	{0,0,1,0,1},
+	{1,0,0,1,0},
+};
 
 //Текущая директория
 char *curDir = NULL;
@@ -21,11 +23,12 @@ char *curDir = NULL;
 //Размер пути текущей директории
 int curDirSize;
 
+void Test();
 
 int main(int argc, char* argv[]){
 
 	//We are cool guys, that's why we are using green color, like in movies about hackers
-	system("color 0A");
+	system("color 02");
 
 	//Получение текущей директории
 	if((curDir = getcwd(curDir, curDirSize))==NULL){
@@ -47,13 +50,13 @@ int main(int argc, char* argv[]){
 	//delete matrixTest5;
 
 
-	MatrixFile *mx = new MatrixFile();
-	//mx->Path = curDir;
-	mx->Path.append("samples\\sample.mxb");
+	//MatrixFile *mx = new MatrixFile();
+	////mx->Path = curDir;
+	/*mx->Path.append("samples\\sample.mxb");*/
 
-    mx->Load();
-    mx->MatrixToVector();
-	
+	//mx->Load();
+	//mx->MatrixToVector();
+
 	//PermMatrixNew *pmn = new PermMatrixNew(mx->MatrixSize,mx->CellSize,mx->MatrixVector);
 	//
 	//PermMatrixNew *pmn = new PermMatrixNew(mx->MatrixSize,mx->CellSize,mx->MatrixVector,
@@ -167,5 +170,35 @@ int main(int argc, char* argv[]){
 	////Очистить переменную с текущей директорией
 	//free(curDir);
 
+	Test();
+
+	system("PAUSE");
 	return 0;
 }
+
+void Test()
+{
+	unsigned long sizeMtx;
+	unsigned long sizeCell;
+	unsigned char * src_vector;
+	unsigned char * dst_vector;
+
+	LoadVectorFromBmp("img/3x3.bmp", &src_vector, &sizeMtx, &sizeCell);
+	LoadVectorFromBmp("img/3x3.bmp", &dst_vector, &sizeMtx, &sizeCell);
+
+	IsomorphMatrices *im = new IsomorphMatrices(sizeMtx,sizeCell,src_vector, dst_vector);
+	unsigned long vector[3] = {0,1,2};
+	unsigned long ignore[3] = {2,1,2};
+	unsigned long ignore2[3] = {0,0,0};
+
+	im->AddToIgnore(ignore);
+	im->AddToIgnore(ignore2);
+
+	im->SearchIsomorph(1, vector);
+
+	delete im;
+	cout<<endl;
+	free(src_vector);
+	free(dst_vector);
+}
+

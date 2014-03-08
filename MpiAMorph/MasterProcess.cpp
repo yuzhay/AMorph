@@ -40,7 +40,7 @@ void MasterProcess(char *srcFile,char *dstFile, int totalNodes)
 	//Обход в ширину
 
 
-	//Состояние 1
+	//Состояние 0
 	//Раздать вершины подграфов по узлам
 	for (int i = 0; i < totalNodes && i < sizeMtx; i++)
 	{
@@ -52,11 +52,56 @@ void MasterProcess(char *srcFile,char *dstFile, int totalNodes)
 		//tag	 -	 идентификатор сообщения (аналог типа сообщения функций nread и nwrite PSE nCUBE2);
 		//comm	 -	 коммуникатор области связи.
 
-		MPI_Send((void *)q.front(),2,MPI_LONG,i+1,1,MPI_COMM_WORLD);
-		q.pop();
+		//MPI_Send((void *)q.front(),2,MPI_LONG,i+1,1,MPI_COMM_WORLD);
+		MPI_Send((void *)i,1,MPI_LONG,i+1,1,MPI_COMM_WORLD);
+		//q.pop();
 	}
 
-	MPI_Status status;
+	//Необходимо добавить проверку, если количество 
+	//узлов больше, чем размер матрицы
+	if(totalNodes > sizeMtx)
+	{
+		MPI_Status status;
+
+		//Сделать опрос среди узлом на делимость поддерева
+		for (int i = 0; i < totalNodes - sizeMtx; i++)
+		{
+			bool result = false;
+
+			//Отправить запрос на выделение поддерева
+			MPI_Send((void *)&result,1,MPI_C_BOOL,i+1,SlaveSubTreeDevisibility,MPI_COMM_WORLD);
+
+			int error,count ;
+
+			//Получить статус ответа
+			error = MPI_Probe(i+1,SlaveSubTreeDevisibility,MPI_COMM_WORLD,&status);
+
+			//Получить длину принимаемого сообщения (для вектора поддерева)
+			error = MPI_Get_count(&status,MPI_LONG,&count);
+
+			if(count > 0)
+			{
+				unsigned long* buffer;
+
+				//Выделить память
+				buffer = (unsigned long*)malloc (sizeof(long)*count) ;
+
+				MPI_Recv((void *)buffer,1,MPI_LONG,i+1,SlaveSubTreeDevisibility,MPI_COMM_WORLD,&status);
+
+				//Сделать проверку на ошибку
+				//if(status.MPI_ERROR)
+
+
+				free(buffer);
+
+			}
+
+		}
+	}
+
+	//MPState1();
+
+
 	while(true)
 	{
 		//MPI_Recv(&i,1, MPI_INT,0,1,MPI_COMM_WORLD,&status);
@@ -65,4 +110,35 @@ void MasterProcess(char *srcFile,char *dstFile, int totalNodes)
 	//Освобождение памяти
 	free(src_vector);
 	free(dst_vector);
+}
+
+
+void MPState1()
+{
+
+}
+
+void MPState2()
+{
+
+}
+
+void MPState3()
+{
+
+}
+
+void MPState4()
+{
+
+}
+
+void MPState5()
+{
+
+}
+
+void MPState6()
+{
+
 }

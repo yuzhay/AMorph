@@ -44,7 +44,7 @@ void PermVectorTrunk::Add(unsigned long *vector, unsigned long counter)
 				return;
 			}
 
-			if(VectorCmp(tmp,*it)>0)
+			if(this->VectorCmp(tmp,*it)>0)
 			{
 				//TMP > it
 				if(lt)
@@ -56,7 +56,7 @@ void PermVectorTrunk::Add(unsigned long *vector, unsigned long counter)
 					it++;
 					gt = true;
 				}
-			}else if(VectorCmp(tmp,*it)<0)
+			}else if(this->VectorCmp(tmp,*it)<0)
 			{
 				//TMP < it
 				if(gt)
@@ -83,13 +83,22 @@ void PermVectorTrunk::Add(unsigned long *vector, unsigned long counter)
 	
 }
 
-int PermVectorTrunk::VectorCmp(const unsigned long *v1, const unsigned long* v2)
+long PermVectorTrunk::VectorCmp(const unsigned long *v1, const unsigned long* v2)
 {
-	for(unsigned long i=0;i<this->size;++i)
+	//v1 - вектор поиска
+	//v2 - вектор или маска вектора
+	//Пример хранения маски ветора: 1,2,3,4,5,1,1,1,1,1 - означает 1,2,3,4,5
+	long marker = v2[0];
+
+	for(register unsigned long i=0;i<this->size;++i)
 	{
-		if(v1[i]>v2[i]) 
+		if(i > 0 && v2[i] == marker)
+			return 0;
+
+		//Проверка на полное соответствие векторов
+		if(v1[i] > v2[i]) 
 			return 1;
-		else if(v1[i]<v2[i])
+		else if(v1[i] < v2[i])
 			return -1;
 	}
 	return 0;
@@ -111,6 +120,12 @@ bool PermVectorTrunk::Find(unsigned long *vector)
 	int result;
 	bool lf,gf = false;
 	int i = 0;
+
+	if(trunk.size() == 1)
+	{
+		return VectorCmp(vector,*it);
+	}
+
 	while(this->it != trunk.end())
 	{
 		result = VectorCmp(vector,*it);
@@ -152,3 +167,79 @@ unsigned long PermVectorTrunk::GetParts(unsigned long index)
 {
 	return parts[index];
 }
+
+//long PermVectorTrunk::FindMask(unsigned long *vector)
+//{
+//	for (unsigned long i = 0; i < trunk.size(); i++)
+//	{
+//		unsigned long a = this->MaskCmp(vector,trunk.at(i));
+//		if(a > 0)
+//			return a;
+//	}
+//	return 0;
+//}
+//
+//long PermVectorTrunk::MaskCmp(const unsigned long *v1, const unsigned long* v2)
+//{
+//	//v1 - вектор поиска
+//	//v2 - вектор или маска вектора
+//	//Пример хранения маски ветора: 1,2,3,4,5,1,1,1,1,1 - означает 1,2,3,4,5
+//	long marker = v2[0];
+//
+//	for(register unsigned long i=0;i<this->size;++i)
+//	{
+//		if(i > 0 && v2[i] == marker)
+//			return i;
+//
+//		//Проверка на полное соответствие векторов
+//		if(v1[i] != v2[i]) 
+//			return 0;
+//	}
+//	return 0;
+//}
+
+
+//MaskVectorTrunk
+
+MaskVectorTrunk::MaskVectorTrunk(unsigned long Size): PermVectorTrunk(Size)
+{
+
+}
+
+MaskVectorTrunk::~MaskVectorTrunk(void)
+{
+
+}
+
+long MaskVectorTrunk::FindMask(unsigned long *vector)
+{
+	for (unsigned long i = 0; i < trunk.size(); i++)
+	{
+		unsigned long a = this->MaskCmp(vector,trunk.at(i));
+		if(a > 0)
+			return a;
+	}
+	return 0;
+}
+
+long MaskVectorTrunk::MaskCmp(const unsigned long *v1, const unsigned long* v2)
+{
+	//v1 - вектор поиска
+	//v2 - вектор или маска вектора
+	//Пример хранения маски ветора: 1,2,3,4,5,1,1,1,1,1 - означает 1,2,3,4,5
+	long marker = v2[0];
+
+	for(register unsigned long i=0;i<this->size;++i)
+	{
+		if(i > 0 && v2[i] == marker)
+			return i;
+
+		//Проверка на полное соответствие векторов
+		if(v1[i] != v2[i]) 
+			return 0;
+	}
+	return 0;
+}
+
+
+

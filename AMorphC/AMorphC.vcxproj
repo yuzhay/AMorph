@@ -97,8 +97,6 @@
   <ItemGroup>
     <ClInclude Include="AMorphC.h" />
     <ClInclude Include="MatrixFile.h" />
-    <ClInclude Include="PermVectorTrunk.h" />
-    <ClInclude Include="Stats.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
