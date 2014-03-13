@@ -42,6 +42,11 @@ private:
 	unsigned long sizeCell;
 
 	/**
+	* Глубина с которой начинается обход
+	*/
+	unsigned long startDepth;
+
+	/**
 	* Указатель на трехмерную матрицу оригинал 
 	*/
 	unsigned char ***mtxOriginal;
@@ -188,7 +193,7 @@ public:
 	* @param depth Глубина поиска изоморфизмов
 	* @param vector Вектор перестановок
 	*/
-	void SearchIsomorph(unsigned long depth, unsigned long vector[]);
+	void SearchIsomorph(unsigned long depth, unsigned long vector[], bool firstCall = true);
 
 		/**
 	* @brief Поиск изоморфизмов
@@ -196,7 +201,8 @@ public:
 	* @param vector Вектор перестановок
 	* @param curVector Текущий вектор
 	*/
-	void SearchIsomorphCallback(unsigned long depth, unsigned long vector[], void (*callback)(IsomorphMatrices *im));
+	void SearchIsomorphCallback(unsigned long depth, 
+		unsigned long vector[], void (*callback)(IsomorphMatrices*, unsigned long*, unsigned long, unsigned long), bool firstCall = true);
 	
 
 	/**
@@ -241,5 +247,10 @@ public:
 	* @brief Добавить вектор в список игнора
 	*/
 	void IsomorphMatrices::AddToIgnore(unsigned long *vector);
+
+	/**
+	* @brief Выделить поддерево (подматрицу)
+	*/
+	unsigned long *IsomorphMatrices::GetSubMatrix(unsigned long *vector);
 
 };

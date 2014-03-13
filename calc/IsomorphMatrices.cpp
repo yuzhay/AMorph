@@ -72,6 +72,8 @@ IsomorphMatrices::IsomorphMatrices(unsigned long sizeMtx, unsigned long sizeCell
 	this->counter = 0;
 
 	this->ignors = new MaskVectorTrunk(this->sizeMtx);
+
+	this->startDepth = 0;
 }
 
 IsomorphMatrices::~IsomorphMatrices(void)
@@ -131,7 +133,7 @@ bool IsomorphMatrices::CompareIsomorph(unsigned long depth, unsigned long vector
 	return true;
 }
 
-void IsomorphMatrices:: SearchIsomorph(unsigned long depth, unsigned long vector[])
+void IsomorphMatrices:: SearchIsomorph(unsigned long depth, unsigned long vector[], bool firstCall)
 {
 	if(depth == 0) throw "SearchIsomorph: WrongArgumentException: Depth <= 0";
 	//bool status;
@@ -139,6 +141,96 @@ void IsomorphMatrices:: SearchIsomorph(unsigned long depth, unsigned long vector
 	static int counter = 0;
 	//length 1,2,3,..,size
 
+	//≈сли это первый вызов рекурсивной функции тогда нужно сохранить начальную глубину
+	if(firstCall == TRUE)
+	{
+		startDepth = depth;
+	}
+
+	for(unsigned long k = 0; k < sizeMtx; ++k)
+		std::cout<<vector[k]<<" | ";
+
+	std::cout<< endl;
+
+	if(depth <= this->sizeMtx) 
+	{
+		this->progress = ((double)100/this->sizeMtx)*depth;
+		for(register unsigned long i = depth - 1; i < this->sizeMtx; ++i)
+		{
+
+
+			//есть тривиальный случай при (i) равном (length - 1)
+			tmp = vector[depth-1]; 
+			vector[depth-1] = vector[i];
+			vector[i] = tmp;
+
+			if(this->ignors->FindMask(vector) == depth)
+			{
+				tmp = vector[depth-1]; 
+				vector[depth-1] = vector[i];
+				vector[i] = tmp;
+				continue;
+			}
+
+			//сравнение матриц
+			if(CompareIsomorph(depth, vector))
+			{
+				if(depth != this->sizeMtx)
+				{
+					this->SearchIsomorph(depth+1,vector, false);
+
+				}			
+				else	//если текущий эл-т последний и матрицы равны, то найден новый автоморфизм и надо его добавить
+				{
+					//std:: cout<<"\nCheck Point Add(vector) Start\n";
+					//std:: cout<<"\nNew vector find\n";
+					//for(unsigned long k = 0; k < this->sizeMtx; ++k)
+					//	std:: cout<<vector[k]<<" | ";
+					this->substitutions->Add(vector, this->counter);
+					tmp = vector[depth-1]; 
+					vector[depth-1] = vector[i];
+					vector[i] = tmp;
+					this->counter = 0;
+					return;
+				}
+			}
+			//не зависимо от того успешно или нет отработал алгоритм поиска, следует вернуть эл-ты на свои места
+			tmp = vector[depth-1]; 
+			vector[depth-1] = vector[i];
+			vector[i] = tmp;
+
+		}
+	}
+	else//(если length > size)
+	{
+		return;
+	}
+	return;
+}
+
+void IsomorphMatrices:: SearchIsomorphCallback(unsigned long depth, 
+	unsigned long vector[], void (*callback)(IsomorphMatrices*, unsigned long*, unsigned long, unsigned long), bool firstCall)
+{
+	if(depth == 0) throw "SearchIsomorph: WrongArgumentException: Depth <= 0";
+	//bool status;
+	unsigned long tmp = 0;
+	static int counter = 0;
+	static bool terminate = false;
+	//length 1,2,3,..,size
+
+	//≈сли это первый вызов рекурсивной функции тогда нужно сохранить начальную глубину
+	if(firstCall == TRUE)
+	{
+		startDepth = depth;
+	}
+
+	if(terminate == TRUE)
+		return;
+
+	if(callback != NULL)
+	{
+		callback(this, vector, sizeMtx, startDepth);
+	}
 
 
 	if(depth <= this->sizeMtx) 
@@ -166,68 +258,16 @@ void IsomorphMatrices:: SearchIsomorph(unsigned long depth, unsigned long vector
 			{
 				if(depth != this->sizeMtx)
 				{
-					this->SearchIsomorph(depth+1,vector);
+					this->SearchIsomorphCallback(depth+1,vector, callback, false);
 
-				}			
-				else	//если текущий эл-т последний и матрицы равны, то найден новый автоморфизм и надо его добавить
-				{
-					std:: cout<<"\nCheck Point Add(vector) Start\n";
-					std:: cout<<"\nNew vector find\n";
-					for(unsigned long k = 0; k < this->sizeMtx; ++k)
-						std:: cout<<vector[k]<<" | ";
-					this->substitutions->Add(vector, this->counter);
-					tmp = vector[depth-1]; 
-					vector[depth-1] = vector[i];
-					vector[i] = tmp;
-					this->counter = 0;
-					return;
-				}
-			}
-			//не зависимо от того успешно или нет отработал алгоритм поиска, следует вернуть эл-ты на свои места
-			tmp = vector[depth-1]; 
-			vector[depth-1] = vector[i];
-			vector[i] = tmp;
-
-		}
-	}
-	else//(если length > size)
-	{
-		return;
-	}
-	return;
-}
-
-void IsomorphMatrices:: SearchIsomorphCallback(unsigned long depth, unsigned long vector[], void (*callback)(IsomorphMatrices *im))
-{
-	if(depth == 0) throw "SearchIsomorph: WrongArgumentException: Depth <= 0";
-
-	//bool status;
-	unsigned long tmp = 0;
-	static int counter = 0;
-	//length 1,2,3,..,size
-	if(depth <= this->sizeMtx) 
-	{
-		this->progress = ((double)100/this->sizeMtx)*depth;
-		for(register unsigned long i = depth - 1; i < this->sizeMtx; ++i)
-		{
-			//есть тривиальный случай при (i) равном (length - 1)
-			tmp = vector[depth-1]; 
-			vector[depth-1] = vector[i];
-			vector[i] = tmp;
-
-			//сравнение матриц
-			if(CompareIsomorph(depth, vector))
-			{
-				if(depth != this->sizeMtx)
-				{
-					this->SearchIsomorph(depth+1,vector);
 				}			
 				else	//если текущий эл-т последний и матрицы равны, то найден новый автоморфизм и надо его добавить
 				{
 					//std:: cout<<"\nCheck Point Add(vector) Start\n";
-					//std:: cout<<"\nNew vector found\n";
-					for(unsigned long k = 0; k < this->sizeMtx; ++k)
-						std:: cout<<vector[k]<<" | ";
+					//std:: cout<<"\nNew vector find\n";
+					//for(unsigned long k = 0; k < this->sizeMtx; ++k)
+					//	std:: cout<<vector[k]<<" | ";
+					//std:cout << endl;
 					this->substitutions->Add(vector, this->counter);
 					tmp = vector[depth-1]; 
 					vector[depth-1] = vector[i];
@@ -406,4 +446,40 @@ unsigned long IsomorphMatrices::GetParts(unsigned long index)
 void IsomorphMatrices::AddToIgnore(unsigned long *vector)
 {
 	this->ignors->Add(vector,0);
+}
+
+unsigned long *IsomorphMatrices::GetSubMatrix(unsigned long *vector)
+{
+	if(startDepth == 0)
+		return NULL;
+
+	//—оздаем временную вектор-маску
+	unsigned long *mask = (unsigned long*)calloc(this->sizeMtx, sizeof(unsigned long));
+
+	//«аполн€ем маску. Ќапример: (*0, *1, *2, [3], 4, 5), где глубина = 4
+	for (unsigned long i = 0; i < startDepth-1; i++)
+	{
+		mask[i] = vector[i];
+	}
+
+	for (unsigned long i = 0; i < sizeMtx - vector[startDepth-1]; i++)
+	{
+		if(vector[startDepth-1] + i + 1 < sizeMtx)
+		{
+			mask[startDepth-1] = vector[startDepth-1] + i + 1;
+
+			//ѕровер€ем маску нет ли ее в игнор списке
+			if(this->ignors->FindMask(mask) == 0)
+			{
+				//Ќужно достроить вектор
+				return mask;
+			}
+		}else
+		{
+			break;
+		}
+	}
+
+	free(mask);
+	return NULL;
 }

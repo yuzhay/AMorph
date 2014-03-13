@@ -23,7 +23,8 @@ char *curDir = NULL;
 //–азмер пути текущей директории
 int curDirSize;
 
-void Test();
+void TestSubMatrix();
+void TestIgnoreList();
 
 int main(int argc, char* argv[]){
 
@@ -170,13 +171,14 @@ int main(int argc, char* argv[]){
 	////ќчистить переменную с текущей директорией
 	//free(curDir);
 
-	Test();
+	//TestIgnoreList();
+	//TestSubMatrix();
 
 	system("PAUSE");
 	return 0;
 }
 
-void Test()
+void TestIgnoreList()
 {
 	unsigned long sizeMtx;
 	unsigned long sizeCell;
@@ -195,6 +197,47 @@ void Test()
 	im->AddToIgnore(ignore2);
 
 	im->SearchIsomorph(1, vector);
+
+	delete im;
+	cout<<endl;
+	free(src_vector);
+	free(dst_vector);
+}
+
+void PrintVector(unsigned long *vector, unsigned long length)
+{
+	for(unsigned long k = 0; k < length; ++k)
+		std::cout<<vector[k]<<" ";
+	std::cout<< endl;
+}
+
+void MyCallback(IsomorphMatrices* im, unsigned long *vector, unsigned long length, unsigned long depth)
+{
+	unsigned long *result = im->GetSubMatrix(vector);
+	if(result != NULL)
+	{
+		PrintVector(result, length);
+	}
+}
+
+void TestSubMatrix()
+{
+	unsigned long sizeMtx;
+	unsigned long sizeCell;
+	unsigned char * src_vector;
+	unsigned char * dst_vector;
+
+	LoadVectorFromBmp("img/3x3.bmp", &src_vector, &sizeMtx, &sizeCell);
+	LoadVectorFromBmp("img/3x3.bmp", &dst_vector, &sizeMtx, &sizeCell);
+
+	IsomorphMatrices *im = new IsomorphMatrices(sizeMtx,sizeCell,src_vector, dst_vector);
+	unsigned long vector[3] = {0,1,2};
+	unsigned long ignore[3] = {2,2,2};
+	unsigned long ignore2[3] = {0,0,0};
+
+	im->AddToIgnore(ignore);
+
+	im->SearchIsomorphCallback(1, vector, MyCallback);
 
 	delete im;
 	cout<<endl;
