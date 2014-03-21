@@ -1,3 +1,5 @@
+#define DIVISIBILITY_CRITERIA 2
+
 
 
 void SlaveProcess(char *srcFile,char *dstFile, int myNode);
@@ -12,4 +14,7 @@ void Print(int src, int dst, int tag, char *str);
 void Print(int src, int dst, int tag, int str);
 void Print(int src, int dst, int tag, unsigned long *v, long len);
 
-void PrintVector(unsigned long *v, long len);
+void PrintVector(int, unsigned long *v, long len);
+
+
+unsigned long *IsDivisibilityCriteria(int node, unsigned long *len);

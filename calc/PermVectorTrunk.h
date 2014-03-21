@@ -63,6 +63,12 @@ public:
 	void Add(unsigned long *vector, unsigned long counter);
 
 	/**
+	* @brief Очистить вектора перестановки
+
+	*/
+	void Clear();
+
+	/**
 	* @brief Поиск вектора перестановки среди имеющихся
 	* @param vector Вектор перестановки
 	* @return Возвращает TRUE, если такой вектор найден. Иначе FALSE.

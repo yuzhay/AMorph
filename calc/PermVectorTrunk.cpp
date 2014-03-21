@@ -168,6 +168,11 @@ unsigned long PermVectorTrunk::GetParts(unsigned long index)
 	return parts[index];
 }
 
+void PermVectorTrunk::Clear()
+{
+	trunk.clear();
+}
+
 //long PermVectorTrunk::FindMask(unsigned long *vector)
 //{
 //	for (unsigned long i = 0; i < trunk.size(); i++)
@@ -240,6 +245,7 @@ long MaskVectorTrunk::MaskCmp(const unsigned long *v1, const unsigned long* v2)
 	}
 	return 0;
 }
+
 
 
 

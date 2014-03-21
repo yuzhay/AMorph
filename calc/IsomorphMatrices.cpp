@@ -209,7 +209,7 @@ void IsomorphMatrices:: SearchIsomorph(unsigned long depth, unsigned long vector
 }
 
 void IsomorphMatrices:: SearchIsomorphCallback(unsigned long depth, 
-	unsigned long vector[], void (*callback)(IsomorphMatrices*, unsigned long*, unsigned long, unsigned long), bool firstCall)
+											   unsigned long vector[], void (*callback)(IsomorphMatrices*, unsigned long*, unsigned long, unsigned long), bool firstCall)
 {
 	if(depth == 0) throw "SearchIsomorph: WrongArgumentException: Depth <= 0";
 	//bool status;
@@ -482,4 +482,9 @@ unsigned long *IsomorphMatrices::GetSubMatrix(unsigned long *vector)
 
 	free(mask);
 	return NULL;
+}
+
+void IsomorphMatrices::ClearSubstitutions()
+{
+	this->substitutions->Clear();
 }

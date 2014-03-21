@@ -17,13 +17,16 @@ IsomorphMatrices *ism = NULL;
 
 
 void SPState1(unsigned long *, long );
+void SPState2();
 
+int node = 0;
 //Исполняющий процесс
 void SlaveProcess(char *srcFile,char *dstFile, int myNode)
 {
 	int i = 0;
 	MPI_Status status;
 
+	node = myNode;
 
 	//Синхронизация процессов
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -87,49 +90,80 @@ MPI_Request callbackRequest;
 
 void Callback(IsomorphMatrices* im, unsigned long *vector, unsigned long length, unsigned long depth)
 {
-	//MPI_Status status;
-	//int flag;
+	MPI_Status status;
+	int flag = 0;
 
-	////Проверка, есть ли сообщение на деление дерева
-	//MPI_Test(&callbackRequest, &flag, &status);
+	//Проверка, есть ли сообщение на деление дерева
+	MPI_Test(&callbackRequest, &flag, &status);
 
-	////Если есть, тогда 
-	//if (flag != 0)
-	//{ 
-	//	//Выделяем поддерево
-	//	unsigned long *subVector = im->GetSubMatrix(vector);
-	//	if(subVector != NULL)
-	//	{
-	//		im->AddToIgnore(subVector);
-	//		MPI_Send(subVector,length,MPI_LONG,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD);
-	//	}
-	//}
+	//Если есть, тогда 
+	if (flag != 0)
+	{ 
+		//Выделяем поддерево
+		unsigned long *subVector = im->GetSubMatrix(vector);
+		if(subVector != NULL)
+		{
+			//Добавляем в игнор лист
+			im->AddToIgnore(subVector);
+
+			//Отправить сообщение о выделенном поддереве
+			MPI_Send(subVector,length,MPI_LONG,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD);
+		}else{
+			MPI_Send(NULL,0,MPI_LONG,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD);
+		}
+	}
 }
 
 //S1 - переход в это состояние выполняется при получении корневой вершины. В этом со-
 //стоянии выполняется обход в глубину выделенного поддерева.
 void SPState1(unsigned long *vector, long length)
 {	
-	//bool buf;
+	bool buf;
 
-	//MPI_Irecv(&buf,1,MPI_C_BOOL,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD,&callbackRequest);
+	MPI_Irecv(&buf,1,MPI_C_BOOL,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD,&callbackRequest);
 
 	unsigned long *v = ConstructFullVector(vector, length,sizeMtx);
-	//PrintVector(v,sizeMtx);
+
+	ism->ClearSubstitutions();
 	ism->SearchIsomorphCallback(length+1,v,Callback,true);
 	
 	int c = ism->GetSubstitutionsCount();
 	for (int i = 0; i < c; i++)
 	{
-		PrintVector(ism->GetSubstitutions(i),sizeMtx);
+		PrintVector(node,ism->GetSubstitutions(i),sizeMtx);
 	}
-	//MPI_Send(&buf,1,MPI_C_BOOL,0,SlaveWorkEnded,MPI_COMM_WORLD);
+	MPI_Send(&buf,1,MPI_C_BOOL,0,SlaveWorkEnded,MPI_COMM_WORLD);
 
+	SPState2();
 }	 
 
 void SPState2()
 {
+	MPI_Status status;
+	int error;
+	unsigned long *buffer;
+	int count = 0;
 
+	while(true)
+	{
+
+		error = MPI_Probe(0,1,MPI_COMM_WORLD,&status);
+
+		//Получить длину принимаемого сообщения
+		error = MPI_Get_count(&status,MPI_LONG,&count);
+
+		//Выделить память
+		buffer = (unsigned long*)malloc (sizeof(long)*count) ;
+
+		if ( buffer == NULL ){};
+
+		error = MPI_Recv (buffer,count,MPI_LONG,0,1,MPI_COMM_WORLD,&status);
+
+
+		//unsigned long *v = ConstructFullVector(buffer, count,sizeMtx);
+
+		SPState1(buffer,count);
+	}
 }
 
 void SPState3()
