@@ -16,13 +16,12 @@ using namespace std;
 //Указатели на файлы
 char *srcFile,*dstFile;
 
+
 void Start();
 
-//Номер текущего процесса
-int myNode;
 
-//Количество процессов
-int totalNodes; 
+
+
 
 int main(int argc, char* argv[])
 {

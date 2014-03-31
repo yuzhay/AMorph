@@ -216,19 +216,24 @@ void IsomorphMatrices:: SearchIsomorphCallback(unsigned long depth,
 	unsigned long tmp = 0;
 	static int counter = 0;
 	static bool terminate = false;
+	static long callbackCounter = 0;
+
 	//length 1,2,3,..,size
 
 	//Если это первый вызов рекурсивной функции тогда нужно сохранить начальную глубину
 	if(firstCall == TRUE)
 	{
 		startDepth = depth;
+		callbackCounter = 0;
 	}
 
 	if(terminate == TRUE)
 		return;
 
+	callbackCounter++;
+	// && callbackCounter % 1000 == 0
 	if(callback != NULL)
-	{
+	{	
 		callback(this, vector, sizeMtx, startDepth);
 	}
 

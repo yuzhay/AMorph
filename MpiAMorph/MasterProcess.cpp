@@ -3,6 +3,8 @@
 #include <queue>
 #include <vector>
 #include <ctime>
+#include "dirent.h"
+#include <direct.h>
 #include "msgtags.h"
 #include "msp.h"
 #include "Files.h"
@@ -21,10 +23,17 @@ void MPState1();
 void MPState2();
 void MPState3(int);
 
+
+//Номер текущего процесса
+int myNode;
+
+//Количество процессов
+int totalNodes; 
+
+
 //Управляющий процесс
 void MasterProcess(char *srcFile,char *dstFile, int totalNodes)
 {
-	start = std::clock();
 	tasks = new queue<unsigned long>();
 
 	queue<unsigned long *> q;
@@ -37,6 +46,8 @@ void MasterProcess(char *srcFile,char *dstFile, int totalNodes)
 	cout << "Total nodes: " << totalNodes << endl;
 
 	NodeStates = (ProcessState*)calloc(totalNodes,sizeof(ProcessState));
+
+	PrepareSolutionDir();
 
 	//Синхронизация процессов
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -54,6 +65,8 @@ void MasterProcess(char *srcFile,char *dstFile, int totalNodes)
 		arr[1] = i+1;
 		q.push(arr);
 	}
+
+	start = std::clock();
 
 	//Обход в ширину
 
@@ -117,12 +130,7 @@ void MasterProcess(char *srcFile,char *dstFile, int totalNodes)
 
 	MPState1();
 
-
-	while(true)
-	{
-		//MPI_Recv(&i,1, MPI_INT,0,1,MPI_COMM_WORLD,&status);
-	}
-
+	cout << "=================Calculation ended"<<endl;
 	//Освобождение памяти
 	free(src_vector);
 	free(dst_vector);
@@ -136,6 +144,30 @@ void MPState1()
 	MPState2();
 }
 
+//void MPState2()
+//{
+//	MPI_Status status;
+//	int error;
+//	bool buf;
+//	int count;
+//
+//	while(true)
+//	{
+//		//Позволяет проверить входные сообщения без их реального приема
+//		error = MPI_Probe(MPI_ANY_SOURCE,SlaveWorkEnded,MPI_COMM_WORLD,&status);
+//
+//		//Получить длину принимаемого сообщения
+//		error = MPI_Get_count(&status,MPI_LONG,&count);
+//
+//		MPI_Recv(&buf,1,MPI_C_BOOL,MPI_ANY_SOURCE,SlaveWorkEnded,MPI_COMM_WORLD,&status);
+//		NodeStates[status.MPI_SOURCE] = STATE_DONE;
+//		Print(status.MPI_SOURCE, 0, SlaveWorkEnded,"1111111111");
+//
+//		MPState3(status.MPI_SOURCE);
+//
+//	}
+//}
+
 void MPState2()
 {
 	MPI_Status status;
@@ -143,37 +175,168 @@ void MPState2()
 	bool buf;
 	int count;
 
+
+	int state = 0;
+
 	while(true)
 	{
-		//Позволяет проверить входные сообщения без их реального приема
-		error = MPI_Probe(MPI_ANY_SOURCE,SlaveWorkEnded,MPI_COMM_WORLD,&status);
+		//PrintNodeStatus();
 
-		//Получить длину принимаемого сообщения
-		error = MPI_Get_count(&status,MPI_LONG,&count);
+		switch (state)
+		{
+		case 0:{
+			//Позволяет проверить входные сообщения без их реального приема
 
-		MPI_Recv(&buf,1,MPI_C_BOOL,MPI_ANY_SOURCE,SlaveWorkEnded,MPI_COMM_WORLD,&status);
-		NodeStates[status.MPI_SOURCE] = STATE_DONE;
-		Print(status.MPI_SOURCE, 0, SlaveWorkEnded,"1111111111");
+			cout << "[0] State 0 MPI_Probe blocked\n"<< flush;
+			error = MPI_Probe(MPI_ANY_SOURCE,SlaveWorkEnded,MPI_COMM_WORLD,&status);
 
-		MPState3(status.MPI_SOURCE);
+			//Получить длину принимаемого сообщения
+			error = MPI_Get_count(&status,MPI_LONG,&count);
+
+			MPI_Recv(&buf,1,MPI_C_BOOL,MPI_ANY_SOURCE,SlaveWorkEnded,MPI_COMM_WORLD,&status);
+
+			cout <<"[0] State 0 MPI_Probe unblocked\n"<< flush;
+			NodeStates[status.MPI_SOURCE] = STATE_DONE;
+			Print(status.MPI_SOURCE, 0, SlaveWorkEnded,"Done");
+			state = 1;
+
+			break;
+			   }
+		case 1:
+			{
+				cout << "[0] State 1\n"<< flush;
+				//Выделить новое поддерево
+				bool allNodesAreFree = AllNodesAreFree();
+				if(tasks->size()>0 && allNodesAreFree)
+				{
+					cout << "[0] State 1 0\n" << flush;
+					unsigned long val = tasks->front();
+					tasks->pop();
+
+					cout << "[0] State 1 MPI_Send blocked\n" << flush;
+					MPI_Send((void *)&val,1,MPI_LONG,status.MPI_SOURCE,1,MPI_COMM_WORLD);
+					cout << "[0] State 1 MPI_Send unblocked\n"<< flush;
+					Print(0,status.MPI_SOURCE,1,&val,1);
+					NodeStates[status.MPI_SOURCE] = STATE1_WORKING;
+				}
+				else
+				{
+					cout << "[0] State 1 1\n"<< flush;
+					bool buf = true;
+					int error;
+					int count = 0;
+					unsigned long *vector;
+					MPI_Status st;
+
+					bool nodeFound = false;
+					//Опрашиваем узлы о делимости задачи
+
+					for (long i = 1; i < totalNodes; i++)
+					{
+
+						if(NodeStates[i] == STATE1_WORKING)
+						{
+
+							cout << "[0] State 1 1 MPI_Send blocked\n"<< flush;
+							MPI_Send(&buf,1, MPI_C_BOOL,i,SlaveSubTreeDevisibility,MPI_COMM_WORLD);
+							cout << "[0] State 1 1 MPI_Send unblocked\n"<< flush;
+
+
+							cout << "[0] State 1 1 MPI_Probe blocked\n"<< flush;
+							//Позволяет проверить входные сообщения без их реального приема
+							error = MPI_Probe(MPI_ANY_SOURCE,MPI_ANY_TAG,MPI_COMM_WORLD,&st);
+							cout << "[0] State 1 1 MPI_Probe unblocked\n"<< flush;
+
+							if(st.MPI_TAG == SlaveWorkEnded)
+							{
+								NodeStates[i] = STATE_DONE;
+							}else if(st.MPI_TAG == SlaveSubTreeDevisibility)
+							{
+								//Получить длину принимаемого сообщения
+								error = MPI_Get_count(&st,MPI_LONG,&count);
+
+
+								cout << "[0] State 1 1 MPI_recv blocked\n"<< flush;
+								vector = (unsigned long *)calloc(count, sizeof(unsigned long));
+								MPI_Recv(vector,count,MPI_LONG,MPI_ANY_SOURCE,SlaveSubTreeDevisibility,MPI_COMM_WORLD,&st);
+
+								cout << "[0] State 1 1 MPI_Recv unblocked\n"<< flush;
+
+								if(count > 0)
+								{
+									nodeFound = true;
+
+									cout << "[0] State 1 2 MPI_Send blocked\n"<< flush;
+									MPI_Send(vector,count, MPI_LONG,status.MPI_SOURCE,1,MPI_COMM_WORLD);
+									cout << "[0] State 1 2 MPI_Send unblocked\n"<< flush;
+
+									NodeStates[status.MPI_SOURCE] = STATE1_WORKING;
+									Print(0,status.MPI_SOURCE,1,vector,count);
+									free(vector);
+
+								}
+							}
+
+
+							//PrintNodeStatus();
+							break;
+						}
+					}
+					if(!nodeFound)
+					{
+						bool buf = true;
+						Print(0,status.MPI_SOURCE,SlaveTerminate,"");
+						cout << "[0] State 1 3 MPI_Send blocked\n"<< flush;
+						MPI_Request req;
+						MPI_Isend(&buf,1, MPI_C_BOOL,status.MPI_SOURCE,SlaveTerminate,MPI_COMM_WORLD,&req);
+						cout << "[0] State 1 3 MPI_Send unblocked\n"<< flush;
+						NodeStates[status.MPI_SOURCE] = STATE_DONE;
+					}
+				}
+
+				PrintNodeStatus();
+				if(AllNodesAre(STATE_DONE) == true)
+				{
+					cout << "0 Barrier" << endl << flush;;
+					MPI_Barrier(MPI_COMM_WORLD);
+					cout << "+0 Barrier" << endl << flush;;
+					return;
+					state = 10;
+				}else{
+					state = 0;
+				}
+
+				break;
+			}
+
+		default:
+			cout<< "222222222222222222222222" <<endl<<flush;
+			return;
+		}
+
+
+		//MPState3(status.MPI_SOURCE);
 
 	}
 }
 
 void MPState3(int node)
 {
-	//Выделить новое поддерево
-	if(tasks->size()>0)
-	{
-		unsigned long val = tasks->front();
-		tasks->pop();
+	//MPI_Status status;
 
-		MPI_Send((void *)&val,1,MPI_LONG,node,1,MPI_COMM_WORLD);
-		Print(0,node,1,&val,1);
-		NodeStates[node] = STATE1_WORKING;
-	}
+	////Выделить новое поддерево
+	//if(tasks->size()>0 && false)
+	//{
+	//	//Если есть непройденные корневые вершины
+	//	unsigned long val = tasks->front();
+	//	tasks->pop();
 
-	MPState2();
+	//	MPI_Send((void *)&val,1,MPI_LONG,node,1,MPI_COMM_WORLD);
+	//	Print(0,node,1,&val,1);
+	//	NodeStates[node] = STATE1_WORKING;
+	//}
+
+	//MPState2();
 }
 
 void MPState4()
@@ -196,7 +359,7 @@ void Print(int src, int dst, int tag, char *str)
 	char buf[256];
 	double cpu_time_used = ((double)(std::clock() - start)) / ((double)CLOCKS_PER_SEC);
 
-	sprintf(buf, "%.15f [%d] -> [%d]: (%s) \"%s\"",cpu_time_used, src,dst,MsgTagsStr[tag],str);
+	sprintf(buf, "%.5f\t [%d] -> [%d]: (%s) \"%s\"",cpu_time_used, src,dst,MsgTagsStr[tag],str);
 	std::cout << buf <<endl;
 
 }
@@ -205,7 +368,7 @@ void Print(int src, int dst, int tag, int str)
 {
 	char buf[256];
 	double cpu_time_used = ((double)(std::clock() - start)) / ((double)CLOCKS_PER_SEC);
-	sprintf(buf, "%.15f [%d] -> [%d]: (%s) \"%d\"",cpu_time_used,src,dst,MsgTagsStr[tag],str);
+	sprintf(buf, "%.5f\t [%d] -> [%d]: (%s) \"%d\"",cpu_time_used,src,dst,MsgTagsStr[tag],str);
 	std::cout << buf <<endl;
 }
 
@@ -213,7 +376,7 @@ void Print(int src, int dst, int tag, unsigned long *v, long len)
 {
 	char buf[256];
 	double cpu_time_used = ((double)(std::clock() - start)) / ((double)CLOCKS_PER_SEC);
-	sprintf(buf, "%.15f [%d] -> [%d]: (%s) ",cpu_time_used,src,dst,MsgTagsStr[tag]);
+	sprintf(buf, "%.5f\t [%d] -> [%d]: (%s) ",cpu_time_used,src,dst,MsgTagsStr[tag]);
 	std::cout << buf << "\"";
 	for (int i = 0; i < len; i++)
 	{
@@ -226,15 +389,18 @@ void Print(int src, int dst, int tag, unsigned long *v, long len)
 
 void PrintVector(int node, unsigned long *v, long len)
 {
+	double cpu_time_used = ((double)(std::clock() - start)) / ((double)CLOCKS_PER_SEC);
+	printf("%.5f\t ",cpu_time_used);
 	std::cout<< node << ": ";
-	std::cout << "\"";
 	for (int i = 0; i < len; i++)
 	{
+		if(i % 20 == 0)
+			cout<< "\n\t";
 		std::cout << v[i];
 		if(i != len-1)
 			cout << ",";
 	}
-	std::cout << "\""<< endl;
+	cout << endl;
 }
 
 unsigned long *IsDivisibilityCriteria(int node, unsigned long *len)
@@ -268,10 +434,80 @@ unsigned long *IsDivisibilityCriteria(int node, unsigned long *len)
 		(*len) = count;
 		return buffer;
 
-		free(buffer);
+
 
 	}
 
 	return NULL;
 }
 
+bool AllNodesAreFree()
+{
+	for (register unsigned long i = 1; i < totalNodes; i++)
+	{
+		if(NodeStates[i] == STATE1_WORKING)
+			return false;
+	}
+
+	return true;
+}
+
+bool AllNodesAre(ProcessState state)
+{
+	for (register unsigned long i = 1; i < totalNodes; i++)
+	{
+		if(NodeStates[i] != state)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void PrintNodeStatus()
+{
+	std::string str;
+
+	str.append("Node Status:\n");
+	char buf[64];
+	for (register unsigned long i = 1; i < totalNodes; i++)
+	{
+		switch(NodeStates[i])
+		{
+
+		case STATE_DONE: 
+			sprintf(buf,"* [%d] %s\n", i, "Done"); 
+			str.append(buf);
+			break;
+		case STATE1_WORKING: 
+			sprintf(buf,"* [%d] %s\n", i, "Working"); 
+			str.append(buf);
+			break;
+		default: break;
+		}
+	}
+	cout << str.c_str() << flush;
+
+}
+
+
+void PrepareSolutionDir()
+{
+	// These are data types defined in the "dirent" header
+	struct dirent *next_file;
+	DIR *theFolder;
+	char filepath[64];
+
+	mkdir("solutions");
+
+	theFolder = opendir("solutions");
+
+	while ( next_file = readdir(theFolder) )
+	{
+		// build the full path for each file in the folder
+		sprintf(filepath, "%s/%s", "solutions", next_file->d_name);
+		remove(filepath);
+	}
+
+}

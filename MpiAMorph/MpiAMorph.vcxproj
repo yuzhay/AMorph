@@ -42,10 +42,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\Program Files\Microsoft HPC Pack 2012\Inc;E:\Program Files %28x86%29\Microsoft HPC Pack 2012\Inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Microsoft HPC Pack 2012\Lib\i386;C:\Program Files\Microsoft HPC Pack 2012\Lib\amd64;E:\Program Files %28x86%29\Microsoft HPC Pack 2012\Lib\amd64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Program Files\Microsoft HPC Pack 2012\Lib\i386;C:\Program Files\Microsoft HPC Pack 2012\Lib\amd64;$(ProjectDir);E:\Program Files %28x86%29\Microsoft HPC Pack 2012\Lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\Program Files\Microsoft HPC Pack 2012\Inc;E:\Program Files %28x86%29\Microsoft HPC Pack 2012\Inc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files\Microsoft HPC Pack 2012\Lib\i386;C:\Program Files\Microsoft HPC Pack 2012\Lib\amd64;E:\Program Files %28x86%29\Microsoft HPC Pack 2012\Lib\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -59,7 +61,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>msmpi.lib;$(TargetDir)permutation.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>msmpi.lib;dirent.lib;$(TargetDir)permutation.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>E:\Program Files %28x86%29\Microsoft HPC Pack 2012\Lib\i386;E:\Program Files\Microsoft HPC Pack 2012 SDK\Lib\i386;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
@@ -79,6 +81,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>msmpi.lib;$(TargetDir)permutation.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -96,6 +99,7 @@
   <ItemGroup>
     <ClInclude Include="..\calc\IsomorphMatrices.h" />
     <ClInclude Include="bitmap_image.hpp" />
+    <ClInclude Include="dirent.h" />
     <ClInclude Include="files.h" />
     <ClInclude Include="Library.h" />
     <ClInclude Include="msp.h" />

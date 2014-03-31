@@ -5,7 +5,8 @@ static const char * MsgTagsStr[] =
 	"SlaveWorkStarted",
 	"SlaveWorkEnded",
 	"SlaveNewNode",
-	"SlaveSubTreeDevisibility"
+	"SlaveSubTreeDevisibility",
+	"SlaveTerminate"
 };
 
 enum MsgTags
@@ -16,7 +17,9 @@ enum MsgTags
 	SlaveWorkStarted,//»сполн€ющий процесс начал работу
 	SlaveWorkEnded,//»сполн€ющий процесс закончил работу
 	SlaveNewNode,//»сполн€ющий процесс получает новый узел дл€ вычислени€
-	SlaveSubTreeDevisibility // ритерий делимости поддерева
+	SlaveSubTreeDevisibility, // ритерий делимости поддерева
+	SlaveTerminate,
+	SlavePrint
 };
 
 enum ProcessState
@@ -24,5 +27,6 @@ enum ProcessState
 	Unset,
 	STATE1_WORKING,
 	STATE_DONE,
+	STATE_TERMINATED,
 	State3
 };
