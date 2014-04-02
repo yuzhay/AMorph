@@ -66,7 +66,7 @@ void MasterProcess(char *srcFile,char *dstFile, int totalNodes)
 		q.push(arr);
 	}
 
-	start = std::clock();
+	
 
 	//Обход в ширину
 
@@ -274,8 +274,13 @@ void MPState1()
 	int error;
 	int count;
 
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	start = std::clock();
+
 	while(true)
 	{
+		
 		if(AllNodesAre(STATE_DONE) == true)
 		{
 			bool buf;

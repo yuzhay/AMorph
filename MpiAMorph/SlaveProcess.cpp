@@ -20,6 +20,7 @@ char space[16] = "";
 void SPState1(unsigned long *, long );
 void SPState(unsigned long *, long );
 void SPState2();
+void SPState3();
 void SaveSolutionToFile(IsomorphMatrices* im);
 
 
@@ -50,48 +51,48 @@ void SlaveProcess(char *srcFile,char *dstFile, int myNode)
 
 	ism = new IsomorphMatrices(sizeMtx,sizeCell,src_vector,dst_vector);
 
-	//for(;;)
-	{
-		int error,count ;
-		unsigned long* buffer;
+
+	//int error,count ;
+	//unsigned long* buffer;
 
 
-		//Позволяет проверить входные сообщения без их реального приема
-		error = MPI_Probe(0,1,MPI_COMM_WORLD,&status);
+	////Позволяет проверить входные сообщения без их реального приема
+	//error = MPI_Probe(0,1,MPI_COMM_WORLD,&status);
 
-		//Получить длину принимаемого сообщения
-		error = MPI_Get_count(&status,MPI_LONG,&count);
+	////Получить длину принимаемого сообщения
+	//error = MPI_Get_count(&status,MPI_LONG,&count);
 
-		//Выделить память
-		buffer = (unsigned long*)malloc (sizeof(long)*count) ;
+	////Выделить память
+	//buffer = (unsigned long*)malloc (sizeof(long)*count) ;
 
-		if ( buffer == NULL ){};
+	//if ( buffer == NULL ){};
 
-		//MPI_Recv:
-		//OUT	 buf	 -	 адрес начала расположения принимаемого сообщения;
-		//IN	 count	 -	 максимальное число принимаемых элементов;
-		//IN	 datatype	 -	 тип элементов принимаемого сообщения;
-		//IN	 source	 -	 номер процесса-отправителя;
-		//IN	 tag	 -	 идентификатор сообщения;
-		//IN	 comm	 -	 коммуникатор области связи;
-		//OUT	 status	 -	 атрибуты принятого сообщения.
-		error = MPI_Recv (buffer,count,MPI_LONG,0,1,MPI_COMM_WORLD,&status);
+	////MPI_Recv:
+	////OUT	 buf	 -	 адрес начала расположения принимаемого сообщения;
+	////IN	 count	 -	 максимальное число принимаемых элементов;
+	////IN	 datatype	 -	 тип элементов принимаемого сообщения;
+	////IN	 source	 -	 номер процесса-отправителя;
+	////IN	 tag	 -	 идентификатор сообщения;
+	////IN	 comm	 -	 коммуникатор области связи;
+	////OUT	 status	 -	 атрибуты принятого сообщения.
+	//error = MPI_Recv (buffer,count,MPI_LONG,0,1,MPI_COMM_WORLD,&status);
 
 
 
-		//SPState1(buffer,count);
-		SPState(buffer,count);
+	////SPState1(buffer,count);
+	//SPState(buffer,count);
 
-		//for (int i = 0; i < count; i++)
-		//{
-		//	cout<<buffer[i]<< " ";
-		//}
-		//cout<< endl;
+	//for (int i = 0; i < count; i++)
+	//{
+	//	cout<<buffer[i]<< " ";
+	//}
+	//cout<< endl;
 
-		//ToDo: Отправка на обход дерева по вектору
+	//ToDo: Отправка на обход дерева по вектору
 
-		//free(buffer);
-	}
+	//free(buffer);
+
+	SPState3();
 
 	free(src_vector);
 	free(dst_vector);
@@ -103,7 +104,7 @@ MPI_Request callbackRequest;
 
 void Callback(IsomorphMatrices* im, unsigned long *vector, unsigned long length, unsigned long depth)
 {
-	
+
 	//printf("%d Callback Started\n", myNode);
 	MPI_Status status;
 	int flag = 0;
@@ -309,9 +310,93 @@ void SPState(unsigned long *vector, long length)
 	}
 }
 
+void NewTask(MPI_Status *status)
+{
+	//printf("[%d] state 0\n", node);
+	//cout << space << "[" << node << "] State 0"<<endl;
+	int error;
+	bool buf;
+	int count;
+
+	//Получить длину принимаемого сообщения
+	error = MPI_Get_count(status,MPI_LONG,&count);
+
+	//Выделить память
+	unsigned long *vector = (unsigned long*)malloc (sizeof(long)*count) ;
+
+	//if ( buffer == NULL ){};
+
+
+	//Асинхронное считывание поступающих сообщений на делимость задачи
+	error = MPI_Irecv(&buf,1,MPI_C_BOOL,0,TAG_DEVIDE_TASK,MPI_COMM_WORLD,&callbackRequest);
+	if(error != MPI_SUCCESS)
+	{
+		printf("[%d] Terminated\n");
+		return;
+	}
+
+	//printf("MPI_Irecv = %d\n", error);
+	error = MPI_Recv (vector,count,MPI_LONG,0,1,MPI_COMM_WORLD,status);
+
+	unsigned long *v = ConstructFullVector(vector, count,sizeMtx);
+	free(vector);
+
+	
+	ism->SearchIsomorphCallback(count+1,v,Callback,true);
+	Callback(ism,NULL,0,0);
+
+	//cout << space << "[" << node << "] Done"<<endl;
+	free(v);
+
+
+	//cout << space << "[" << node << "] State 0 MPI_Send block"<<endl;
+	MPI_Send(&buf,1,MPI_C_BOOL,0,TAG_TASK_COMPLETED,MPI_COMM_WORLD);
+	//cout << space << "[" << node << "] State 0 MPI_Send unblock"<<endl;
+}
+
+void NodeTerminate(MPI_Status *status)
+{
+	//cout << space << "[" << node << "] SaveSolutionToFile"<<endl;
+	bool b;
+	int error;
+
+	//cout << space << "[" << node << "] State 1 1 MPI_Recv block"<<endl;
+	error = MPI_Recv (&b,1,MPI_C_BOOL,0,TAG_NODE_TERMINATE,MPI_COMM_WORLD,status);
+	//cout << space << "[" << node << "] State 1 1 MPI_Recv unblock"<<endl;
+
+
+	SaveSolutionToFile(ism);
+	//cout << space << node <<" Barrier" << endl;
+	MPI_Barrier(MPI_COMM_WORLD);
+}
+
 void SPState3()
 {
+	MPI_Status status;
+	int error;
+	int count;
 
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	while(true)
+	{
+		error = MPI_Probe(0,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
+
+		switch(status.MPI_TAG)
+		{
+		case TAG_NODE_TERMINATE:
+			{
+				NodeTerminate(&status);
+				return;
+				break;
+			}
+		case TAG_NEW_TASK:
+			{
+				NewTask(&status);
+				break;
+			}
+		}
+	}
 }
 
 void SPState4()
