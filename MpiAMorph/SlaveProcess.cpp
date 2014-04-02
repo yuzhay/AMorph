@@ -103,6 +103,7 @@ MPI_Request callbackRequest;
 
 void Callback(IsomorphMatrices* im, unsigned long *vector, unsigned long length, unsigned long depth)
 {
+	
 	//printf("%d Callback Started\n", myNode);
 	MPI_Status status;
 	int flag = 0;
@@ -112,9 +113,9 @@ void Callback(IsomorphMatrices* im, unsigned long *vector, unsigned long length,
 
 	if(vector == NULL || length == 0 || depth == 0)
 	{
-		cout << space << "[" << node << "] State Callback 0 MPI_Send block"<<endl;
-		MPI_Send(NULL,0,MPI_LONG,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD);
-		cout << space << "[" << node << "] State Callback 0 MPI_Send unblock"<<endl;
+		//cout << space << "[" << node << "] State Callback 0 MPI_Send block"<<endl;
+		MPI_Send(NULL,0,MPI_LONG,0,TAG_DEVIDE_TASK,MPI_COMM_WORLD);
+		//cout << space << "[" << node << "] State Callback 0 MPI_Send unblock"<<endl;
 		return;
 	}
 
@@ -133,13 +134,13 @@ void Callback(IsomorphMatrices* im, unsigned long *vector, unsigned long length,
 			free(subVector);
 			//Отправить сообщение о выделенном поддереве
 
-			cout << space << "[" << node << "] State Callback MPI_Send block"<<endl;
-			MPI_Send(shortSubVector,shortLen,MPI_LONG,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD);
-			cout << space << "[" << node << "] State Callback MPI_Send unblock"<<endl;
+			//cout << space << "[" << node << "] State Callback MPI_Send block"<<endl;
+			MPI_Send(shortSubVector,shortLen,MPI_LONG,0,TAG_DEVIDE_TASK,MPI_COMM_WORLD);
+			//cout << space << "[" << node << "] State Callback MPI_Send unblock"<<endl;
 		}else{
-			cout << space << "[" << node << "] State Callback MPI_Send block"<<endl;
-			MPI_Send(NULL,0,MPI_LONG,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD);
-			cout << space << "[" << node << "] State Callback MPI_Send unblock"<<endl;
+			//cout << space << "[" << node << "] State Callback MPI_Send block"<<endl;
+			MPI_Send(NULL,0,MPI_LONG,0,TAG_DEVIDE_TASK,MPI_COMM_WORLD);
+			//cout << space << "[" << node << "] State Callback MPI_Send unblock"<<endl;
 		}
 	}
 
@@ -152,7 +153,7 @@ void SPState1(unsigned long *vector, long length)
 {	
 	bool buf;
 
-	MPI_Irecv(&buf,1,MPI_C_BOOL,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD,&callbackRequest);
+	MPI_Irecv(&buf,1,MPI_C_BOOL,0,TAG_DEVIDE_TASK,MPI_COMM_WORLD,&callbackRequest);
 
 	unsigned long *v = ConstructFullVector(vector, length,sizeMtx);
 	free(vector);
@@ -170,7 +171,7 @@ void SPState1(unsigned long *vector, long length)
 	//	PrintVector(node,ism->GetSubstitutions(i),sizeMtx);
 	//}
 
-	MPI_Send(&buf,1,MPI_C_BOOL,0,SlaveWorkEnded,MPI_COMM_WORLD);
+	MPI_Send(&buf,1,MPI_C_BOOL,0,TAG_TASK_COMPLETED,MPI_COMM_WORLD);
 
 	SPState2();
 }	 
@@ -218,12 +219,12 @@ void SPState(unsigned long *vector, long length)
 		case 0:
 			{
 				//printf("[%d] state 0\n", node);
-				cout << space << "[" << node << "] State 0"<<endl;
+				//cout << space << "[" << node << "] State 0"<<endl;
 
 				bool buf;
 
 				//Асинхронное считывание поступающих сообщений на делимость задачи
-				error = MPI_Irecv(&buf,1,MPI_C_BOOL,0,SlaveSubTreeDevisibility,MPI_COMM_WORLD,&callbackRequest);
+				error = MPI_Irecv(&buf,1,MPI_C_BOOL,0,TAG_DEVIDE_TASK,MPI_COMM_WORLD,&callbackRequest);
 				if(error != MPI_SUCCESS)
 				{
 					printf("[%d] Terminated\n");
@@ -239,31 +240,31 @@ void SPState(unsigned long *vector, long length)
 				ism->SearchIsomorphCallback(length+1,v,Callback,true);
 				Callback(ism,NULL,0,0);
 
-				cout << space << "[" << node << "] Done"<<endl;
+				//cout << space << "[" << node << "] Done"<<endl;
 				free(v);
 
 
-				cout << space << "[" << node << "] State 0 MPI_Send block"<<endl;
-				MPI_Send(&buf,1,MPI_C_BOOL,0,SlaveWorkEnded,MPI_COMM_WORLD);
-				cout << space << "[" << node << "] State 0 MPI_Send unblock"<<endl;
+				//cout << space << "[" << node << "] State 0 MPI_Send block"<<endl;
+				MPI_Send(&buf,1,MPI_C_BOOL,0,TAG_TASK_COMPLETED,MPI_COMM_WORLD);
+				//cout << space << "[" << node << "] State 0 MPI_Send unblock"<<endl;
 				state = 1;
 				break;
 			}
 		case 1:
 			{
 				//printf("[%d] state 1\n", node);
-				cout << space << "[" << node << "] State 1"<<endl;
+				//cout << space << "[" << node << "] State 1"<<endl;
 				MPI_Status status;
 				int error;
 				unsigned long *newVector;
 				int newLength = 0;
 
-				cout << space << "[" << node << "] State 1 MPI_Probe block"<<endl;
+				//cout << space << "[" << node << "] State 1 MPI_Probe block"<<endl;
 				error = MPI_Probe(0,MPI_ANY_TAG,MPI_COMM_WORLD,&status);
-				cout << space << "[" << node << "] State 1 MPI_Probe unblock"<<endl;
+				//cout << space << "[" << node << "] State 1 MPI_Probe unblock"<<endl;
 
-				cout << space << "[" << node << "] TAG = " << status.MPI_TAG << endl;
-				if(status.MPI_TAG == 1){
+				//cout << space << "[" << node << "] TAG = " << status.MPI_TAG << endl;
+				if(status.MPI_TAG == TAG_NEW_TASK){
 					//Получить длину принимаемого сообщения
 					error = MPI_Get_count(&status,MPI_LONG,&newLength);
 
@@ -272,9 +273,9 @@ void SPState(unsigned long *vector, long length)
 
 					if ( newVector == NULL ){};
 
-					cout << space << "[" << node << "] State 1 MPI_Recv block"<<endl;
-					error = MPI_Recv (newVector,newLength,MPI_LONG,0,1,MPI_COMM_WORLD,&status);
-					cout << space << "[" << node << "] State 1 MPI_Recv unblock"<<endl;
+					//cout << space << "[" << node << "] State 1 MPI_Recv block"<<endl;
+					error = MPI_Recv (newVector,newLength,MPI_LONG,0,TAG_NEW_TASK,MPI_COMM_WORLD,&status);
+					//cout << space << "[" << node << "] State 1 MPI_Recv unblock"<<endl;
 
 
 					//unsigned long *v = ConstructFullVector(buffer, count,sizeMtx);
@@ -283,21 +284,21 @@ void SPState(unsigned long *vector, long length)
 					length = newLength;
 
 					state = 0;
-				}else if(status.MPI_TAG == SlaveTerminate)
+				}else if(status.MPI_TAG == TAG_NODE_TERMINATE)
 				{
-					cout << space << "[" << node << "] SaveSolutionToFile"<<endl;
+					//cout << space << "[" << node << "] SaveSolutionToFile"<<endl;
 					bool b;
 
-					cout << space << "[" << node << "] State 1 1 MPI_Recv block"<<endl;
-					error = MPI_Recv (&b,1,MPI_C_BOOL,0,SlaveTerminate,MPI_COMM_WORLD,&status);
-					cout << space << "[" << node << "] State 1 1 MPI_Recv unblock"<<endl;
+					//cout << space << "[" << node << "] State 1 1 MPI_Recv block"<<endl;
+					error = MPI_Recv (&b,1,MPI_C_BOOL,0,TAG_NODE_TERMINATE,MPI_COMM_WORLD,&status);
+					//cout << space << "[" << node << "] State 1 1 MPI_Recv unblock"<<endl;
 
 
 					SaveSolutionToFile(ism);
-					cout << space << node <<" Barrier" << endl;
+					//cout << space << node <<" Barrier" << endl;
 					MPI_Barrier(MPI_COMM_WORLD);
 					return;
-				}else if(status.MPI_TAG == SlaveSubTreeDevisibility)
+				}else if(status.MPI_TAG == TAG_DEVIDE_TASK)
 				{
 					state = 0;
 				}

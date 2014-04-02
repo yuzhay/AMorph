@@ -231,8 +231,8 @@ void IsomorphMatrices:: SearchIsomorphCallback(unsigned long depth,
 		return;
 
 	callbackCounter++;
-	// && callbackCounter % 1000 == 0
-	if(callback != NULL)
+	// 
+	if(callback != NULL && callbackCounter % 1000 == 0)
 	{	
 		callback(this, vector, sizeMtx, startDepth);
 	}
